@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define POP 1000 // Population size
+#define POP 1000000 // Population size
 #define NUM_GENS 100 // Number of generations simulated
 #define domPercent 0.2 // Percent of alleles in the population which are dominant
 #define domChar 'A' // Character representing dominant allele
@@ -15,32 +15,33 @@ struct org{ // Each organism is diploid
     char allele2;
 };
 
-void nextGen(org orgs[]){ // Takes an input of organism structs, selects the same number of pairs to reproduce sexually, and creates the next generation from their offspring
-    org newOrgs[POP];
+void nextGen(org *orgs[POP]){ // Takes an input of organism structs, selects the same number of pairs to reproduce sexually, and creates the next generation from their offspring
+    static org *newOrgs[POP];
     for(int i = 0; i < POP; i++){
-        org parent1 = orgs[rand()%POP];
-        org parent2 = orgs[rand()%POP];
-        org newOrg;
+        org *parent1 = orgs[rand()%POP];
+        org *parent2 = orgs[rand()%POP];
+        org *newOrg = (org*) malloc(sizeof(org));
         if(rand() % 2 == 0){
-            newOrg.allele1 = parent1.allele1;
+            newOrg->allele1 = parent1->allele1;
         }
         else{
-            newOrg.allele1 = parent1.allele2;
+            newOrg->allele1 = parent1->allele2;
         }
         if(rand() % 2 == 0){
-            newOrg.allele2 = parent2.allele1;
+            newOrg->allele2 = parent2->allele1;
         }
         else{
-            newOrg.allele2 = parent2.allele2;
+            newOrg->allele2 = parent2->allele2;
         }
         newOrgs[i] = newOrg;
     }
     for(int i = 0; i < POP; i++){
+        free(orgs[i]);
         orgs[i] = newOrgs[i];
     }
 }
 
-void printPopData(org orgs[]){ // Prints gene pool and genotype statistics
+void printPopData(org *orgs[]){ // Prints gene pool and genotype statistics
     int alleleDomCount = 0;
     int alleleResCount = 0;
     int hDomCount = 0;
@@ -49,18 +50,18 @@ void printPopData(org orgs[]){ // Prints gene pool and genotype statistics
     for(int i = 0; i < POP; i++){
         int res1 = 0;
         int res2 = 0;
-        if(orgs[i].allele1 == domChar){
+        if(orgs[i]->allele1 == domChar){
             alleleDomCount++;
         }
-        else if(orgs[i].allele1 = resChar){
+        else if(orgs[i]->allele1 = resChar){
             alleleResCount++;
             res1 = 1;
         }
         
-        if(orgs[i].allele2 == domChar){
+        if(orgs[i]->allele2 == domChar){
             alleleDomCount++;
         }
-        else if(orgs[i].allele2 = resChar){
+        else if(orgs[i]->allele2 = resChar){
             alleleResCount++;
             res2 = 1;
         }
@@ -80,16 +81,16 @@ void printPopData(org orgs[]){ // Prints gene pool and genotype statistics
 }
 
 int main(){
-    org orgs[POP];
+    static org *orgs[POP];
     for(int i = 0; i < POP; i++){ // Generate organism array
-        org newOrg;
-        newOrg.allele1 = 'a';
+        org *newOrg = (org*) malloc(sizeof(org));
+        newOrg->allele1 = resChar;
         if(rand() < domPercent*RAND_MAX){
-            newOrg.allele1 = 'A';
+            newOrg->allele1 = domChar;
         }
-        newOrg.allele2 = 'a';
+        newOrg->allele2 = resChar;
         if(rand() < domPercent*RAND_MAX){
-            newOrg.allele2 = 'A';
+            newOrg->allele2 = domChar;
         }
         orgs[i] = newOrg;
     }
@@ -100,6 +101,10 @@ int main(){
         nextGen(orgs);
         printf("Generation %d: ", i);
         printPopData(orgs);
+    }
+
+    for(int i = 0 ; i < POP; i++){
+        free(orgs[i]);
     }
 
     return 0;
